@@ -3,6 +3,17 @@
 #include "uproc.h"
 
 void
+print_man()
+{
+  printf(1, "   -st    sort process table by state\n");
+  printf(1, "   -st    sort process table by running-time\n");
+  printf(1, "   -sz    sort process talbe by process size\n");
+  printf(1, "   -n     print number of processes in the process table\n");
+  printf(1, "   -s <query>     search a process by name\n");
+  printf(1, "   -i <id>        search a process by id\n");
+}
+
+void
 print_header()
 {
   printf(1, "PID  PPID  STATE     TIME  RUNNING-TIME  SIZE  NAME\n");
@@ -149,9 +160,16 @@ main(int argc, char* argv[])
 
   // Parse command-line option
   if (argc > 1) {
+
+    // ps help
+    if (strcmp(argv[1], "-help") == 0) {
+      print_man();
+      free(table);
+      exit();
+    }
     
     // Sort by process state
-    if (strcmp(argv[1], "-st") == 0) {
+    else if (strcmp(argv[1], "-st") == 0) {
       sort_state(table, procnum);
     }
 
