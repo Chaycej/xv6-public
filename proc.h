@@ -37,6 +37,7 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 // Per-process state
 struct proc {
   int ticks;
+  int start_time;
   int uptime;
   uint sz;                     // Size of process memory (bytes)
   pde_t* pgdir;                // Page table

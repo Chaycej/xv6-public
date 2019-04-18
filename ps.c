@@ -2,11 +2,87 @@
 #include "user.h"
 #include "uproc.h"
 
-void sort_table(struct uproc *table, int procnum)
+void
+print_header()
+{
+  printf(1, "PID  PPID  STATE     TIME  RUNNING-TIME  SIZE  NAME\n");
+}
+
+void
+print_state(int state)
+{
+  if(state == 1)
+    printf(1, "   EMBRYO  ");
+  if(state == 2)
+    printf(1, "   SLEEPING  ");
+  if(state == 3)
+    printf(1, "   RUNNABLE  ");
+  if(state == 4)
+    printf(1, "   RUNNING  ");
+  if(state == 5)
+    printf(1, "   ZOMBIE   ");
+}
+
+void
+print_proc(struct uproc* p)
+{
+  printf(1, " %d  ", p->pid);
+  printf(1, " %d ", p->ppid);
+  print_state(p->state);
+  printf(1, "  %d  ", (uptime() - p->start_time));
+  printf(1, "  %d  ", (p->uptime));
+  printf(1, "         %d  ", p->sz);
+  printf(1, "%s\n", p->name); 
+}
+
+int 
+search_procname(char* query, struct uproc *table,
+        int procnum, struct uproc *result)
+{
+  int i;
+  for (i = 0; i < procnum; i++) {
+    if (strcmp(query, table[i].name) == 0) {
+      result->pid = table[i].pid;
+      result->ppid = table[i].ppid;
+      result->state = table[i].state;
+      result->sz = table[i].sz;
+      result->uptime = table[i].uptime;
+      result->ticks = table[i].ticks;
+      result->start_time = table[i].start_time;
+      strcpy(result->name, table[i].name);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int
+search_procid(int query_id, struct uproc *table,
+        int procnum, struct uproc *result)
+{
+  int i;
+  for (i = 0; i < procnum; i++) {
+    if (query_id == table[i].pid) {
+      result->pid = table[i].pid;
+      result->ppid = table[i].ppid;
+      result->state = table[i].state;
+      result->sz = table[i].sz;
+      result->uptime = table[i].uptime;
+      result->ticks = table[i].ticks;
+      result->start_time = table[i].start_time;
+      strcpy(result->name, table[i].name);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+void sort_state(struct uproc *table, int procnum)
 {
   int i, j;
   struct uproc key;
 
+  // insertion sort
   for (i = 1; i < procnum; i++) {
     key = table[i];
     j = i-1;
@@ -15,8 +91,44 @@ void sort_table(struct uproc *table, int procnum)
       table[j+1] = table[j];
       j--;
     }
+    table[j+1] = key;
   }
+}
 
+void sort_rtime(struct uproc *table, int procnum)
+{
+  int i, j;
+  struct uproc key;
+
+  //insertion sort
+  for (i = 0; i < procnum; i++) {
+    key = table[i];
+    j = i-1;
+
+    while (j >= 0 && table[i].uptime > key.uptime) {
+      table[j+1] = table[j];
+      j--;
+    }
+    table[j+1] = key;
+  }
+}
+
+void sort_size(struct uproc *table, int procnum)
+{
+  int i, j;
+  struct uproc key;
+
+  // insertion sort
+  for (i = 1; i < procnum; i++) {
+    key = table[i];
+    j = i-1;
+
+    while (j >= 0 && table[i].sz > key.sz) {
+      table[j+1] = table[j];
+      j--;
+    }
+    table[j+1] = key;
+  }
 }
 
 int
@@ -39,37 +151,69 @@ main(int argc, char* argv[])
   if (argc > 1) {
     
     // Sort by process state
-    if (strcmp(argv[1], "-sp") == 0) {
-      printf(1, "Found sp option\n");
+    if (strcmp(argv[1], "-st") == 0) {
       sort_state(table, procnum);
-    } 
+    }
+
+    // Sort by running time
+    else if (strcmp(argv[1], "-sr") == 0) {
+      sort_rtime(table, procnum);
+    }
     
-    // Search by process name
-    else if (strcmp(argv[1], "-s") == 0) {
+    // Sort by process size
+    else if (strcmp(argv[1], "-sz") == 0) {
+      sort_size(table, procnum);
+    }
+
+    // List number of processes
+    else if (strcmp(argv[1], "-n") == 0) {
+      printf(1, "Number of processes: %d\n", procnum);
+    }
+   
+    // Search process by name 
+    else if (strcmp(argv[1], "-s") == 0 && argc > 2) {
+      struct uproc *p = (struct uproc*)malloc(sizeof(struct uproc));
+
+      if ((search_procname(argv[2], table, procnum, p)) == 1) {
+        print_header();
+        print_proc(p);
+      } else {
+        printf(1, "Could not find a process with that name\n");
+      }
+
+      free(table);
+      exit();
+    }
+
+    // Search process by ID
+    else if (strcmp(argv[1], "-i") == 0 && argc > 2) {
+      struct uproc *p = (struct uproc*)malloc(sizeof(struct uproc));
+
+      if ((search_procid(atoi(argv[2]), table, procnum, p)) == 1) {
+        print_header();
+        print_proc(p);
+      } else {
+        printf(1, "Could not find a process with that id\n");
+      }
+
+      free(table);
+      exit();
     }
   }
 
+  // print entire process table
 
-  printf(1, "PID  PPID  STATE TIME UPTIME  SIZE  NAME\n");
-  for(int i = 0; i < procnum; i++) // Print information for each process
+  print_header();
+  for(int i = 0; i < procnum; i++)
   {
     printf(1, " %d   ", table[i].pid);
 
     printf(1, "%d  ", table[i].ppid);
     int state = table[i].state;
-    if(state == 1)
-      printf(1, "EMBRYO  ");
-    if(state == 2)
-      printf(1, "SLEEPING  ");
-    if(state == 3)
-      printf(1, "RUNNABLE  ");
-    if(state == 4)
-      printf(1, "RUNNING  ");
-    if(state == 5)
-      printf(1, "ZOMBIE  ");
-    printf(1, "%d  ", (uptime() - table[i].ticks)/10);
-    printf(1, "%d  ", (uptime() - table[i].uptime)/10);
-    printf(1, "%d  ", table[i].sz);
+    print_state(state);
+    printf(1, " %d  ", (uptime() - table[i].start_time));
+    printf(1, "  %d  ", (table[i].uptime));
+    printf(1, "       %d  ", table[i].sz);
     printf(1, "%s\n", table[i].name);
   }
   free(table);

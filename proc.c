@@ -91,11 +91,10 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   acquire(&tickslock);
-  p->ticks = ticks;
+  p->start_time = ticks;
   release(&tickslock);
 
   release(&ptable.lock);
-  p->uptime = p->ticks;
 
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
@@ -345,6 +344,7 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -355,6 +355,7 @@ scheduler(void)
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
+      p->uptime += ticks - p->ticks;
       c->proc = 0;
     }
     release(&ptable.lock);
@@ -559,6 +560,7 @@ getprocs(int max, struct uproc table[])
       table[num].sz = p->sz;
       table[num].ticks = p->ticks;
       table[num].uptime = p->uptime;
+      table[num].start_time = p->start_time;
       int dest_size = sizeof(table[num].name);
       strncpy(table[num].name, p->name, dest_size);
       table[num].name[dest_size-1] = '\0';
