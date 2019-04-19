@@ -98,7 +98,7 @@ void sort_state(struct uproc *table, int procnum)
     key = table[i];
     j = i-1;
 
-    while (j >= 0 && table[i].state > key.state) {
+    while (j >= 0 && table[j].state > key.state) {
       table[j+1] = table[j];
       j--;
     }
@@ -112,11 +112,11 @@ void sort_rtime(struct uproc *table, int procnum)
   struct uproc key;
 
   //insertion sort
-  for (i = 0; i < procnum; i++) {
+  for (i = 1; i < procnum; i++) {
     key = table[i];
     j = i-1;
 
-    while (j >= 0 && table[i].uptime > key.uptime) {
+    while (j >= 0 && table[j].uptime > key.uptime) {
       table[j+1] = table[j];
       j--;
     }
@@ -134,7 +134,7 @@ void sort_size(struct uproc *table, int procnum)
     key = table[i];
     j = i-1;
 
-    while (j >= 0 && table[i].sz > key.sz) {
+    while (j >= 0 && table[j].sz > key.sz) {
       table[j+1] = table[j];
       j--;
     }
