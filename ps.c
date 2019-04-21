@@ -204,7 +204,14 @@ main(int argc, char* argv[])
     }
 
     // Search process by ID
-    else if (strcmp(argv[1], "-i") == 0 && argc > 2) {
+    else if (strcmp(argv[1], "-i") == 0) {
+
+      if (argc < 3) {
+        printf(1, "Invalid number of arguments\n\n");
+        free(table);
+        exit();
+      }
+
       struct uproc *p = (struct uproc*)malloc(sizeof(struct uproc));
 
       if ((search_procid(atoi(argv[2]), table, procnum, p)) == 1) {
@@ -216,6 +223,45 @@ main(int argc, char* argv[])
 
       free(table);
       exit();
+    }
+
+    else if (strcmp(argv[1], "-ir") == 0) {
+
+      if (argc < 4) {
+        printf(1, "Invalid number of arguments\n\n");
+        free(table);
+        exit();
+      }
+
+      int low = atoi(argv[2]);
+      int high = atoi(argv[3]);
+
+      if (low > high) {
+        printf(1, "usage: invalid ranges\n\n");
+        free(table);
+        exit();
+      } else {
+        int found = 0;
+
+        int i;
+        for (i = 0; i < procnum; i++) {
+          if ((table[i].pid >= low) && (table[i].pid <= high)) {
+            if (found == 0) {
+              print_header();
+              found = 1;
+            }
+            
+            print_proc(&table[i]);
+          }
+        }
+
+        if (found == 0) {
+          printf(1, "no processes found within range\n\n");
+        }
+
+        free(table);
+        exit();
+      }
     }
   }
 
