@@ -3,8 +3,8 @@ struct uproc {
   int ppid;
   int state;
   uint sz;
+  int start_time;
   int uptime;
   int ticks;
-  int sleepticks;
   char name[16];
 };
