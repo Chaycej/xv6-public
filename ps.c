@@ -11,12 +11,13 @@ print_man()
   printf(1, "   -n     print number of processes in the process table\n");
   printf(1, "   -s <query>     search a process by name\n");
   printf(1, "   -i <id>        search a process by id\n");
+  printf(1, "   -r <low> <high> return processes within the range\n");
 }
 
 void
 print_header()
 {
-  printf(1, "PID  PPID  STATE     TIME  RUNNING-TIME  SIZE  NAME\n");
+  printf(1, "PID  PPID  STATE     SLEEP-TIME  RUNNING-TIME  SIZE  NAME\n");
 }
 
 void
@@ -40,9 +41,9 @@ print_proc(struct uproc* p)
   printf(1, " %d  ", p->pid);
   printf(1, " %d ", p->ppid);
   print_state(p->state);
-  printf(1, "  %d  ", (uptime() - p->start_time));
-  printf(1, "  %d  ", (p->uptime));
-  printf(1, "         %d  ", p->sz);
+  printf(1, " %d  ", (uptime() - p->start_time));
+  printf(1, "          %d  ", (p->uptime));
+  printf(1, "        %d  ", p->sz);
   printf(1, "%s\n", p->name); 
 }
 
@@ -276,7 +277,7 @@ main(int argc, char* argv[])
     int state = table[i].state;
     print_state(state);
     printf(1, " %d  ", (uptime() - table[i].start_time));
-    printf(1, "  %d  ", (table[i].uptime));
+    printf(1, "         %d  ", (table[i].uptime));
     printf(1, "       %d  ", table[i].sz);
     printf(1, "%s\n", table[i].name);
   }
